@@ -13,8 +13,11 @@ async fn internal_server_error() -> impl IntoResponse {
 async fn packet_ids(Path(ids): Path<String>) -> impl IntoResponse {
     let packet_ids: Vec<i32> = ids
         .split('/')
-        .map(|id_str| i32::from_str(id_str).unwrap())
+        // TODO: How to handle this gracefully?
+        .map(|id_str| i32::from_str(id_str).unwrap_or(0))
         .collect();
+
+    // validate on the length of the ids
     if packet_ids.len() > 20 {
         return (
             StatusCode::BAD_REQUEST,
@@ -48,8 +51,6 @@ mod tests {
     async fn hello_world() {
         let app = app();
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let client = TestClient::new(app);
         let res = client.get("/").send().await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -60,8 +61,6 @@ mod tests {
     async fn internal_server_error() {
         let app = app();
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let client = TestClient::new(app);
         let res = client.get("/-1/error").send().await;
         assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
@@ -72,8 +71,6 @@ mod tests {
     async fn num1_xor_num2_pow_3() {
         let app = app();
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let client = TestClient::new(app);
         let res = client.get("/1/3/5").send().await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -85,8 +82,6 @@ mod tests {
     async fn one_packet_ids() {
         let app = app();
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let client = TestClient::new(app);
         let res = client.get("/1/10").send().await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -98,8 +93,6 @@ mod tests {
     async fn multi_packet_ids() {
         let app = app();
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let client = TestClient::new(app);
         let res = client.get("/1/4/5/8/10").send().await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -111,8 +104,6 @@ mod tests {
     async fn multi_packet_ids_more_than_20_ids() {
         let app = app();
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let client = TestClient::new(app);
         let res = client
             .get("/1/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21")
