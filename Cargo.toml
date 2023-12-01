@@ -1,0 +1,15 @@
+[package]
+name = "cch23-challenge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.6.20"
+shuttle-axum = "0.34.0"
+shuttle-runtime = "0.34.0"
+tokio = "1.28.2"
+tracing = "0.1.40"
+
+[dev-dependencies]
+tower = { version = "0.4", features = ["util"] }
+axum-test-helper = "0.3.0"
