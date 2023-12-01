@@ -6,6 +6,8 @@ I'm using [Axum runtime](https://github.com/tokio-rs/axum).
 
 ## To Run the app
 
+make sure to install [cargo-shuttle](https://docs.shuttle.rs/getting-started/installation)
+
 ```shell
 cargo shuttle run
 ```
