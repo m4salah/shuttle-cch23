@@ -2,9 +2,9 @@ name: Shuttle Deploy
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Rust build and test"]
+    types: [completed]
 
 jobs:
   deploy:
