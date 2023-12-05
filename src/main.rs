@@ -93,7 +93,7 @@ async fn contest(Json(reindeers): Json<Vec<ContestReindeer>>) -> impl IntoRespon
             consumer: format!("{} ate lots of candies, but also some grass", c.name),
         })
         .into_response(),
-        _ => (StatusCode::BAD_REQUEST, "atleast on contest must enter").into_response(),
+        _ => (StatusCode::BAD_REQUEST, "Invalid contest").into_response(),
     }
 }
 
