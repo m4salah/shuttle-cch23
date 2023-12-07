@@ -3,9 +3,6 @@ mod day1;
 mod day4;
 mod day6;
 
-pub use day4::{ContestReindeer, ContestResult};
-pub use day6::ElfOnShelfResult;
-
 pub fn router() -> axum::Router {
     axum::Router::new()
         .nest("/", day0::router())
