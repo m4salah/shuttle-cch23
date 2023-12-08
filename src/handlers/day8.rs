@@ -7,7 +7,8 @@ struct PokeWeight {
 }
 
 impl PokeWeight {
-    fn extract_weight(&self) -> f64 {
+    // Extract the weight from the pokemone in kg
+    fn extract_weight_kg(&self) -> f64 {
         self.weight as f64 / 10.0
     }
 }
@@ -20,7 +21,7 @@ async fn poke_weight(Path(pokedex): Path<u32>) -> impl IntoResponse {
         .await
         .unwrap();
 
-    format!("{}", poke_weight.extract_weight())
+    format!("{}", poke_weight.extract_weight_kg())
 }
 
 async fn poke_drop(Path(pokedex): Path<u32>) -> impl IntoResponse {
@@ -33,11 +34,11 @@ async fn poke_drop(Path(pokedex): Path<u32>) -> impl IntoResponse {
 
     println!(
         "{}",
-        poke_weight.extract_weight() * (9.825f64 * 10.0 * 2.0).sqrt()
+        poke_weight.extract_weight_kg() * (9.825f64 * 10.0 * 2.0).sqrt()
     );
     format!(
         "{}",
-        poke_weight.extract_weight() * (9.825f64 * 10.0 * 2.0).sqrt()
+        poke_weight.extract_weight_kg() * (9.825f64 * 10.0 * 2.0).sqrt()
     )
 }
 
