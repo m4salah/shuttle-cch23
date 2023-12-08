@@ -14,7 +14,7 @@ impl PokeWeight {
 }
 
 async fn poke_weight(Path(pokedex): Path<u32>) -> impl IntoResponse {
-    let poke_weight = reqwest::get(format!("https://pokeapi.co/api/v/pokemon/{pokedex}"))
+    let poke_weight = reqwest::get(format!("https://pokeapi.co/api/v2/pokemon/{pokedex}"))
         .await
         .unwrap()
         .json::<PokeWeight>()
