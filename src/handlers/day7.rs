@@ -35,14 +35,12 @@ async fn santa_cookie(headers: HeaderMap) -> impl IntoResponse {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct RecipePantry {
     pub recipe: Value,
     pub pantry: Value,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct CookieResult {
     pub cookies: i64,
     pub pantry: Value,
