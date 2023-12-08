@@ -43,29 +43,6 @@ pub struct RecipePantry {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Recipe {
-    pub flour: i64,
-    pub sugar: i64,
-    pub butter: i64,
-    #[serde(rename = "baking powder")]
-    pub baking_powder: i64,
-    #[serde(rename = "chocolate chips")]
-    pub chocolate_chips: i64,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Pantry {
-    pub flour: i64,
-    pub sugar: i64,
-    pub butter: i64,
-    #[serde(rename = "baking powder")]
-    pub baking_powder: i64,
-    #[serde(rename = "chocolate chips")]
-    pub chocolate_chips: i64,
-}
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct CookieResult {
     pub cookies: i64,
     pub pantry: Value,
@@ -133,13 +110,14 @@ async fn secret_cookie(headers: HeaderMap) -> impl IntoResponse {
             }
             (_, _) => Value::Null,
         };
-        println!("rest_pantry: {rest_pantry:?}");
-        let f = rest_pantry.as_object().unwrap().is_empty();
-        println!("rest_pantry: {rest_pantry:?} {f}");
-        // let cookies_count = required_pantry.into_iter().min().unwrap();
+        let rest_pantry_is_empty = rest_pantry.as_object().unwrap().is_empty();
         let result = CookieResult {
             cookies: cookies_count,
-            pantry: if f { req.pantry } else { rest_pantry },
+            pantry: if rest_pantry_is_empty {
+                req.pantry
+            } else {
+                rest_pantry
+            },
         };
         // println!("{req:?}");
         return Json(result).into_response();
