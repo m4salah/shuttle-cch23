@@ -80,6 +80,6 @@ mod tests {
         let client = TestClient::new(app);
         let res = client.get("/8/drop/25").send().await;
         assert_eq!(res.status(), StatusCode::OK);
-        assert!(res.text().await.parse::<f64>().unwrap() - 84.10707461325713 <= 0.001);
+        assert!((res.text().await.parse::<f64>().unwrap() - 84.10707461325713).abs() <= 0.001);
     }
 }
