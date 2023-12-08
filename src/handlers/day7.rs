@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 
 pub fn router() -> axum::Router {
-    axum::Router::new().route("/7/decode", get(santa_cookie))
+    axum::Router::new()
+        .route("/7/decode", get(santa_cookie))
+        .route("/7/bake", get(secret_cookie))
 }
 
 async fn santa_cookie(headers: HeaderMap) -> impl IntoResponse {
