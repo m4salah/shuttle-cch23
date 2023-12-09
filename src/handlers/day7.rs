@@ -1,13 +1,9 @@
-use axum::{
-    http::{header::COOKIE, HeaderMap, StatusCode},
-    response::IntoResponse,
-    routing::get,
-    Json,
-};
+use std::collections::HashMap;
+
+use axum::{headers::Cookie, http::StatusCode, routing::get, Json, TypedHeader};
 use base64::{engine::general_purpose, Engine};
-use cookie::Cookie;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Number, Value};
+use serde_json::Value;
 
 pub fn router() -> axum::Router {
     axum::Router::new()
@@ -15,112 +11,92 @@ pub fn router() -> axum::Router {
         .route("/7/bake", get(secret_cookie))
 }
 
-async fn santa_cookie(headers: HeaderMap) -> impl IntoResponse {
-    let cookies_string = headers.get(COOKIE).unwrap().to_str().unwrap();
-    let mut result = None;
+#[axum::debug_handler]
+async fn santa_cookie(TypedHeader(cookie): TypedHeader<Cookie>) -> Result<Json<Value>, StatusCode> {
+    let recipe = cookie
+        .get("recipe")
+        .ok_or_else(|| StatusCode::BAD_REQUEST)?;
 
-    for cookie in Cookie::split_parse(cookies_string) {
-        if let Ok(c) = cookie {
-            match c.name() {
-                "recipe" => result = Some(c.value().to_owned()),
-                _ => {}
-            }
-        }
-    }
-    if let Some(res) = result {
-        let de = general_purpose::STANDARD.decode(res).unwrap();
-        return Json(serde_json::from_slice::<Value>(&de).unwrap()).into_response();
-    }
-    (StatusCode::BAD_REQUEST, "bad request").into_response()
+    let de = general_purpose::STANDARD.decode(recipe).map_err(|e| {
+        eprintln!("ERR: error while decoding recipe from base64 {e}");
+        StatusCode::BAD_REQUEST
+    })?;
+
+    let recipe_pantry: Value = serde_json::from_slice(&de).map_err(|e| {
+        eprintln!("ERR: error while deserialize from json {e}");
+        StatusCode::BAD_REQUEST
+    })?;
+    Ok(Json(recipe_pantry))
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct RecipePantry {
-    pub recipe: Value,
-    pub pantry: Value,
+    recipe: HashMap<String, u32>,
+    pantry: HashMap<String, u32>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct CookieResult {
-    pub cookies: i64,
-    pub pantry: Value,
+    cookies: u32,
+    pantry: HashMap<String, u32>,
 }
 
-async fn secret_cookie(headers: HeaderMap) -> impl IntoResponse {
-    let cookies_string = headers.get(COOKIE).unwrap().to_str().unwrap();
-    let mut result = None;
+async fn secret_cookie(
+    TypedHeader(cookie): TypedHeader<Cookie>,
+) -> Result<Json<CookieResult>, StatusCode> {
+    let recipe = cookie
+        .get("recipe")
+        .ok_or_else(|| StatusCode::BAD_REQUEST)?;
 
-    for cookie in Cookie::split_parse(cookies_string) {
-        if let Ok(c) = cookie {
-            match c.name() {
-                "recipe" => result = Some(c.value().to_owned()),
-                _ => {}
-            }
-        }
-    }
-    if let Some(res) = result {
-        let de = general_purpose::STANDARD.decode(res).unwrap();
-        let req: RecipePantry = serde_json::from_slice(&de).unwrap();
+    let de = general_purpose::STANDARD.decode(recipe).map_err(|e| {
+        eprintln!("ERR: error while decoding recipe from base64 {e}");
+        StatusCode::BAD_REQUEST
+    })?;
 
-        let cookies_count = match (req.recipe.clone(), req.pantry.clone()) {
-            (Value::Object(recipe_map), Value::Object(pantry_map)) => recipe_map
-                .into_iter()
-                .map(|(recipe_key, recipe_value)| {
-                    if let (Some(Value::Number(pantry_needed)), Value::Number(recipe_value)) =
-                        (pantry_map.get(&recipe_key), recipe_value)
-                    {
-                        pantry_needed.as_i64().unwrap() / recipe_value.as_i64().unwrap()
-                    } else {
-                        0
-                    }
-                })
-                .min()
-                .unwrap(),
-            (_, _) => 0,
-        };
+    let recipe_pantry: RecipePantry = serde_json::from_slice(&de).map_err(|e| {
+        eprintln!("ERR: error while deserialize from json {e}");
+        StatusCode::BAD_REQUEST
+    })?;
 
-        let rest_pantry = match (req.recipe, req.pantry.clone()) {
-            (Value::Object(recipe_map), Value::Object(pantry_map)) => {
-                let m: Map<String, Value> = recipe_map
-                    .into_iter()
-                    .filter_map(|(recipe_key, recipe_value)| {
-                        if let (
-                            Some(Value::Number(pantry_available)),
-                            Value::Number(recipe_value),
-                        ) = (pantry_map.get(&recipe_key), recipe_value)
-                        {
-                            //     flour: req.pantry.flour - (req.recipe.flour * cookies_count),
-                            let pantry_available = pantry_available.as_i64().unwrap();
-                            Some((
-                                recipe_key,
-                                Value::Number(Number::from(
-                                    pantry_available
-                                        - (recipe_value.as_i64().unwrap() * cookies_count),
-                                )),
-                            ))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-                println!("{m:?}");
-                Value::Object(m)
-            }
-            (_, _) => Value::Null,
-        };
-        let rest_pantry_is_empty = rest_pantry.as_object().unwrap().is_empty();
-        let result = CookieResult {
-            cookies: cookies_count,
-            pantry: if rest_pantry_is_empty {
-                req.pantry
+    let cookies_count = recipe_pantry
+        .clone()
+        .recipe
+        .into_iter()
+        .map(|(recipe_key, recipe_value)| {
+            if let Some(pantry_needed) = recipe_pantry.pantry.get(&recipe_key) {
+                pantry_needed / recipe_value
             } else {
-                rest_pantry
-            },
-        };
-        // println!("{req:?}");
-        return Json(result).into_response();
-    }
-    (StatusCode::BAD_REQUEST, "bad request").into_response()
+                0
+            }
+        })
+        .min()
+        .unwrap();
+
+    let rest_pantry: HashMap<String, u32> = recipe_pantry
+        .recipe
+        .into_iter()
+        .filter_map(|(recipe_key, recipe_value)| {
+            if let Some(pantry_available) = recipe_pantry.pantry.get(&recipe_key) {
+                Some((
+                    recipe_key,
+                    pantry_available - (recipe_value * cookies_count),
+                ))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let rest_pantry_is_empty = rest_pantry.is_empty();
+    let result = CookieResult {
+        cookies: cookies_count,
+        pantry: if rest_pantry_is_empty {
+            recipe_pantry.pantry
+        } else {
+            rest_pantry
+        },
+    };
+    Ok(Json(result))
 }
 #[cfg(test)]
 mod tests {
