@@ -41,6 +41,64 @@ mod tests {
     use axum_test_helper::TestClient;
 
     #[tokio::test]
+    async fn test_empty_shelves() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client
+            .post("/6")
+            .body("")
+            .header("Content-Type", "text/plain")
+            .send()
+            .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        let expected = ElfOnShelfResult {
+            ..Default::default()
+        };
+        assert_eq!(res.json::<ElfOnShelfResult>().await, expected);
+    }
+
+    #[tokio::test]
+    async fn test_no_elf_on_shelves() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client
+            .post("/6")
+            .body("there is a shelf. another shelf here.")
+            .header("Content-Type", "text/plain")
+            .send()
+            .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        let expected = ElfOnShelfResult {
+            elf: 2,
+            shelf_with_no_elf_on_it: 2,
+            ..Default::default()
+        };
+        assert_eq!(res.json::<ElfOnShelfResult>().await, expected);
+    }
+
+    #[tokio::test]
+    async fn test_mixed_shelves() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client
+            .post("/6")
+            .body("there is an elf on a shelf. another shelf here. elf on a shelf.")
+            .header("Content-Type", "text/plain")
+            .send()
+            .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        let expected = ElfOnShelfResult {
+            elf: 5,
+            elf_on_a_shelf: 2,
+            shelf_with_no_elf_on_it: 1,
+        };
+        assert_eq!(res.json::<ElfOnShelfResult>().await, expected);
+    }
+
+    #[tokio::test]
     async fn elf() {
         let app = router();
 
