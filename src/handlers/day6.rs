@@ -1,4 +1,6 @@
-use axum::{response::IntoResponse, routing::post, Json};
+use axum::{routing::post, Json};
+use fancy_regex::Regex;
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 pub fn router() -> axum::Router {
@@ -7,22 +9,29 @@ pub fn router() -> axum::Router {
 
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Eq)]
 struct ElfOnShelfResult {
-    elf: u32,
-    #[serde(alias = "elf on a shelf")]
-    elf_on_shelf: u32,
-    #[serde(alias = "shelf with no elf on it")]
-    shelf_with_no_elf: u32,
+    elf: u64,
+    #[serde(rename = "elf on a shelf")]
+    elf_on_a_shelf: u64,
+    #[serde(rename = "shelf with no elf on it")]
+    shelf_with_no_elf_on_it: u64,
 }
 
-async fn elf_on_shelf(elf_text: String) -> impl IntoResponse {
-    let shelf = elf_text.matches("shelf").count() as u32;
-    let elf_on_shelf = elf_text.matches("elf on a shelf").count() as u32;
-    let elf = elf_text.matches("elf").count() as u32;
-    Json(ElfOnShelfResult {
+async fn elf_on_shelf(elf_text: String) -> Result<Json<ElfOnShelfResult>, StatusCode> {
+    let shelf_with_no_elf_on_it = Regex::new("(?<!elf on a )shelf")
+        .map_err(|e| {
+            eprintln!("ERR: coud't make the regex {e}");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
+        .captures_iter(elf_text.as_str())
+        .count() as u64;
+    let elf_on_a_shelf = elf_text.matches("elf on a shelf").count() as u64;
+    let elf = elf_text.matches("elf").count() as u64;
+
+    Ok(Json(ElfOnShelfResult {
         elf,
-        elf_on_shelf,
-        shelf_with_no_elf: shelf - elf_on_shelf,
-    })
+        elf_on_a_shelf,
+        shelf_with_no_elf_on_it,
+    }))
 }
 
 #[cfg(test)]
@@ -70,8 +79,8 @@ mod tests {
         assert_eq!(res.status(), StatusCode::OK);
         let expected = ElfOnShelfResult {
             elf: 5,
-            shelf_with_no_elf: 1,
-            elf_on_shelf: 1,
+            shelf_with_no_elf_on_it: 1,
+            elf_on_a_shelf: 1,
         };
         assert_eq!(res.json::<ElfOnShelfResult>().await, expected);
     }
