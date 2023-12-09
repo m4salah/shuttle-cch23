@@ -39,8 +39,8 @@ mod tests {
         let res = client
             .post("/6")
             .body(
-                "The mischievous elf peeked out from behind the toy workshop,
-      and another elf joined in the festive dance.
+                "The mischievous elf peeked out from behind the toy workshop,\
+      and another elf joined in the festive dance.\
       Look, there is also an elf on that shelf!",
             )
             .header("Content-Type", "text/plain")
@@ -60,7 +60,10 @@ mod tests {
         let client = TestClient::new(app);
         let res = client
             .post("/6")
-            .body("there is an elf on a shelf on an elf. there is also another shelf in Belfast.")
+            .body(
+                "there is an elf on a shelf on an elf.\
+      there is also another shelf in Belfast.",
+            )
             .header("Content-Type", "text/plain")
             .send()
             .await;
