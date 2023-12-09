@@ -23,14 +23,14 @@ async fn sum_strength(Json(reindeers): Json<Vec<Reindeer>>) -> impl IntoResponse
 #[derive(Debug, Serialize, Deserialize)]
 struct ContestReindeer {
     name: String,
-    strength: i32,
+    strength: u32,
     speed: f32,
     height: u32,
     antler_width: u32,
-    snow_magic_power: i64,
+    snow_magic_power: u32,
     favorite_food: String,
     #[serde(alias = "cAnD13s_3ATeN-yesT3rdAy")]
-    candies: i32,
+    candies: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Eq)]
@@ -41,12 +41,10 @@ struct ContestResult {
     consumer: String,
 }
 async fn contest(Json(reindeers): Json<Vec<ContestReindeer>>) -> impl IntoResponse {
-    let fastest = reindeers.iter().max_by(|a, b| a.strength.cmp(&b.strength));
-    let tallest = reindeers.iter().max_by(|a, b| a.height.cmp(&b.height));
-    let magician = reindeers
-        .iter()
-        .max_by(|a, b| a.snow_magic_power.cmp(&b.snow_magic_power));
-    let candiest = reindeers.iter().max_by(|a, b| a.candies.cmp(&b.candies));
+    let fastest = reindeers.iter().max_by(|a, b| a.speed.total_cmp(&b.speed));
+    let tallest = reindeers.iter().max_by_key(|r| r.height);
+    let magician = reindeers.iter().max_by_key(|r| r.snow_magic_power);
+    let candiest = reindeers.iter().max_by_key(|r| r.candies);
 
     match (fastest, tallest, magician, candiest) {
         (Some(f), Some(t), Some(m), Some(c)) => Json(ContestResult {
@@ -136,7 +134,7 @@ mod tests {
             .await;
         assert_eq!(res.status(), StatusCode::OK);
         let expected = ContestResult {
-            fastest: "Speeding past the finish line with a strength of 6 is Dancer".to_string(),
+            fastest: "Speeding past the finish line with a strength of 5 is Dasher".to_string(),
             tallest: "Dasher is standing tall with his 36 cm wide antlers".to_string(),
             magician: "Dasher could blast you away with a snow magic power of 9001".to_string(),
             consumer: "Dancer ate lots of candies, but also some grass".to_string(),
