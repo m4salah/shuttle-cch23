@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use axum::{extract::Path, http::StatusCode, routing::get};
 use serde::Deserialize;
 
@@ -13,31 +15,29 @@ impl PokeWeight {
     }
 }
 
-async fn fetch_poke(poke_id: u32) -> Result<PokeWeight, StatusCode> {
+async fn fetch_poke(poke_id: u32) -> Result<PokeWeight, Box<dyn Error>> {
     Ok(
         reqwest::get(format!("https://pokeapi.co/api/v2/pokemon/{poke_id}"))
-            .await
-            .map_err(|e| {
-                eprintln!("ERR: coudn't call the pokeapi {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?
+            .await?
             .json::<PokeWeight>()
-            .await
-            .map_err(|e| {
-                eprintln!("ERR: coudn't parse json {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?,
+            .await?,
     )
 }
 
 async fn poke_weight(Path(pokedex): Path<u32>) -> Result<String, StatusCode> {
-    let poke_weight = fetch_poke(pokedex).await?;
+    let poke_weight = fetch_poke(pokedex).await.map_err(|e| {
+        eprintln!("ERR: error while fetch poke {e}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     Ok(format!("{}", poke_weight.extract_weight_kg()))
 }
 
 async fn poke_drop(Path(pokedex): Path<u32>) -> Result<String, StatusCode> {
-    let poke_weight = fetch_poke(pokedex).await?;
+    let poke_weight = fetch_poke(pokedex).await.map_err(|e| {
+        eprintln!("ERR: error while fetch poke {e}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     Ok(format!(
         "{}",
