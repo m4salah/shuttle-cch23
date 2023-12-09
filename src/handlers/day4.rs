@@ -60,7 +60,10 @@ async fn contest(Json(reindeers): Json<Vec<ContestReindeer>>) -> impl IntoRespon
                 "{} could blast you away with a snow magic power of {}",
                 m.name, m.snow_magic_power
             ),
-            consumer: format!("{} ate lots of candies, but also some grass", c.name),
+            consumer: format!(
+                "{} ate lots of candies, but also some {}",
+                c.name, c.favorite_food
+            ),
         })
         .into_response(),
         _ => (StatusCode::BAD_REQUEST, "Invalid contest").into_response(),
@@ -106,27 +109,27 @@ mod tests {
             .post("/4/contest")
             .body(
                 json!([
-                {
-                      "name": "Dasher",
-                      "strength": 5,
-                      "speed": 50.4,
-                      "height": 80,
-                      "antler_width": 36,
-                      "snow_magic_power": 9001,
-                      "favorite_food": "hay",
-                      "cAnD13s_3ATeN-yesT3rdAy": 2
-                    },
-                    {
-                      "name": "Dancer",
-                      "strength": 6,
-                      "speed": 48.2,
-                      "height": 65,
-                      "antler_width": 37,
-                      "snow_magic_power": 4004,
-                      "favorite_food": "grass",
-                      "cAnD13s_3ATeN-yesT3rdAy": 5
-                    }
-                                ])
+                  {
+                    "name": "Dasher",
+                    "strength": 5,
+                    "speed": 50.4,
+                    "height": 80,
+                    "antler_width": 36,
+                    "snow_magic_power": 9001,
+                    "favorite_food": "hay",
+                    "cAnD13s_3ATeN-yesT3rdAy": 2
+                  },
+                  {
+                    "name": "Dancer",
+                    "strength": 6,
+                    "speed": 48.2,
+                    "height": 65,
+                    "antler_width": 37,
+                    "snow_magic_power": 4004,
+                    "favorite_food": "grass",
+                    "cAnD13s_3ATeN-yesT3rdAy": 5
+                  }
+                ])
                 .to_string(),
             )
             .header("Content-Type", "application/json")
