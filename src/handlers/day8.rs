@@ -1,4 +1,4 @@
-use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get};
+use axum::{extract::Path, http::StatusCode, routing::get};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
@@ -13,33 +13,36 @@ impl PokeWeight {
     }
 }
 
-async fn poke_weight(Path(pokedex): Path<u32>) -> impl IntoResponse {
-    let poke_weight = reqwest::get(format!("https://pokeapi.co/api/v2/pokemon/{pokedex}"))
-        .await
-        .unwrap()
-        .json::<PokeWeight>()
-        .await
-        .unwrap();
-
-    format!("{}", poke_weight.extract_weight_kg())
+async fn fetch_poke(poke_id: u32) -> Result<PokeWeight, StatusCode> {
+    Ok(
+        reqwest::get(format!("https://pokeapi.co/api/v2/pokemon/{poke_id}"))
+            .await
+            .map_err(|e| {
+                eprintln!("ERR: coudn't call the pokeapi {e}");
+                StatusCode::INTERNAL_SERVER_ERROR
+            })?
+            .json::<PokeWeight>()
+            .await
+            .map_err(|e| {
+                eprintln!("ERR: coudn't parse json {e}");
+                StatusCode::INTERNAL_SERVER_ERROR
+            })?,
+    )
 }
 
-async fn poke_drop(Path(pokedex): Path<u32>) -> impl IntoResponse {
-    let poke_weight = reqwest::get(format!("https://pokeapi.co/api/v2/pokemon/{pokedex}"))
-        .await
-        .unwrap()
-        .json::<PokeWeight>()
-        .await
-        .unwrap();
+async fn poke_weight(Path(pokedex): Path<u32>) -> Result<String, StatusCode> {
+    let poke_weight = fetch_poke(pokedex).await?;
 
-    println!(
+    Ok(format!("{}", poke_weight.extract_weight_kg()))
+}
+
+async fn poke_drop(Path(pokedex): Path<u32>) -> Result<String, StatusCode> {
+    let poke_weight = fetch_poke(pokedex).await?;
+
+    Ok(format!(
         "{}",
         poke_weight.extract_weight_kg() * (9.825f64 * 10.0 * 2.0).sqrt()
-    );
-    format!(
-        "{}",
-        poke_weight.extract_weight_kg() * (9.825f64 * 10.0 * 2.0).sqrt()
-    )
+    ))
 }
 
 pub fn router() -> axum::Router {
