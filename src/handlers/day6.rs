@@ -1,10 +1,15 @@
-use axum::{routing::post, Json};
+use axum::{
+    routing::{get, post},
+    Json,
+};
 use fancy_regex::Regex;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 pub fn router() -> axum::Router {
-    axum::Router::new().route("/6", post(elf_on_shelf))
+    axum::Router::new()
+        .route("/6", post(elf_on_shelf))
+        .route("/6/health", get(|| async { StatusCode::OK }))
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Eq)]

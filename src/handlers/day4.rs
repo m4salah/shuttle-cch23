@@ -1,10 +1,16 @@
-use axum::{http::StatusCode, response::IntoResponse, routing::post, Json};
+use axum::{
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json,
+};
 use serde::{Deserialize, Serialize};
 
 pub fn router() -> axum::Router {
     axum::Router::new()
         .route("/4/strength", post(sum_strength))
         .route("/4/contest", post(contest))
+        .route("/4/health", get(|| async { StatusCode::OK }))
 }
 
 #[derive(Debug, Serialize, Deserialize)]

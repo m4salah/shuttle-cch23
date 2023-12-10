@@ -3,6 +3,13 @@ use std::error::Error;
 use axum::{extract::Path, http::StatusCode, routing::get};
 use serde::Deserialize;
 
+pub fn router() -> axum::Router {
+    axum::Router::new()
+        .route("/8/weight/:pokedex", get(poke_weight))
+        .route("/8/drop/:pokedex", get(poke_drop))
+        .route("/8/health", get(|| async { StatusCode::OK }))
+}
+
 #[derive(Deserialize, Debug, Clone)]
 struct PokeWeight {
     weight: u32,
@@ -45,13 +52,6 @@ async fn poke_drop(Path(pokedex): Path<u32>) -> Result<String, StatusCode> {
     ))
 }
 
-pub fn router() -> axum::Router {
-    axum::Router::new()
-        .route("/8", get(|| async { StatusCode::OK }))
-        .route("/8/weight/:pokedex", get(poke_weight))
-        .route("/8/drop/:pokedex", get(poke_drop))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -63,7 +63,7 @@ mod tests {
         let app = router();
 
         let client = TestClient::new(app);
-        let res = client.get("/8").send().await;
+        let res = client.get("/8/health").send().await;
         assert_eq!(res.status(), StatusCode::OK);
     }
 

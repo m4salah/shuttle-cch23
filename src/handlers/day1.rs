@@ -2,7 +2,9 @@ use axum::{extract::Path, http::StatusCode, response::IntoResponse, routing::get
 use std::str::FromStr;
 
 pub fn router() -> axum::Router {
-    axum::Router::new().route("/1/*ids", get(packet_ids))
+    axum::Router::new()
+        .route("/1/*ids", get(packet_ids))
+        .route("/1/health", get(|| async { StatusCode::OK }))
 }
 
 async fn packet_ids(Path(ids): Path<String>) -> impl IntoResponse {
@@ -49,6 +51,20 @@ mod tests {
         let res = client.get("/1/10").send().await;
         assert_eq!(res.status(), StatusCode::OK);
         let expected = 1000;
+        assert_eq!(res.text().await, format!("{expected}"));
+    }
+
+    #[tokio::test]
+    async fn invalid_packet_ids() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client
+            .get("/1/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21")
+            .send()
+            .await;
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+        let expected = "packet ids must be between 1 and 20 inclusive packets in a sled";
         assert_eq!(res.text().await, format!("{expected}"));
     }
 }

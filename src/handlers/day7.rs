@@ -9,6 +9,7 @@ pub fn router() -> axum::Router {
     axum::Router::new()
         .route("/7/decode", get(santa_cookie))
         .route("/7/bake", get(secret_cookie))
+        .route("/7/health", get(|| async { StatusCode::OK }))
 }
 
 #[axum::debug_handler]

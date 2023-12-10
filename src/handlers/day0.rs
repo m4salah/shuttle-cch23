@@ -4,6 +4,7 @@ pub fn router() -> axum::Router {
     axum::Router::new()
         .route("/", get(hello_world))
         .route("/-1/error", get(internal_server_error))
+        .route("/-1/health", get(|| async { StatusCode::OK }))
 }
 
 async fn internal_server_error() -> impl IntoResponse {

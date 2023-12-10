@@ -15,3 +15,64 @@ pub fn router() -> axum::Router {
         .nest("/", day7::router())
         .nest("/", day8::router())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::StatusCode;
+    use axum_test_helper::TestClient;
+
+    #[tokio::test]
+    async fn day0_health() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client.get("/-1/health").send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn day1_health() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client.get("/1/health").send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn day4_health() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client.get("/4/health").send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn day6_health() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client.get("/6/health").send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn day7_health() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client.get("/7/health").send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn day8_health() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client.get("/8/health").send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+}
