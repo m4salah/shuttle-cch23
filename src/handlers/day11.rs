@@ -49,12 +49,10 @@ async fn red_pixels(mut multipart: Multipart) -> Result<String, StatusCode> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
 
     use super::*;
-    use axum::{body::Empty, http::StatusCode};
+    use axum::http::StatusCode;
     use axum_test_helper::TestClient;
-    use reqwest::multipart::{Form, Part};
 
     #[tokio::test]
     async fn day11_health() {
@@ -75,4 +73,6 @@ mod tests {
         assert_eq!(res.headers().get("content-length").unwrap(), "787297");
         assert_eq!(res.headers().get("content-type").unwrap(), "image/png");
     }
+
+    // TODO: test with valid image, red_pixels endpoint
 }
