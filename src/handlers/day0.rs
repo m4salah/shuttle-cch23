@@ -12,6 +12,7 @@ async fn internal_server_error() -> impl IntoResponse {
 }
 
 async fn hello_world() -> impl IntoResponse {
+    tracing::info!("hello world endpoint called");
     "Hello, World!"
 }
 
