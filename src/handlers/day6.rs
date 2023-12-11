@@ -46,6 +46,14 @@ async fn elf_on_shelf(elf_text: String) -> Result<Json<ElfOnShelfResult>, Status
         .captures_iter(elf_text.as_str())
         .count() as u64;
 
+    tracing::info!(
+        "elf_text result: {:?}",
+        ElfOnShelfResult {
+            elf,
+            elf_on_a_shelf,
+            shelf_with_no_elf_on_it: shelf - elf_on_a_shelf,
+        }
+    );
     Ok(Json(ElfOnShelfResult {
         elf,
         elf_on_a_shelf,
