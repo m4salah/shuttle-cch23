@@ -22,20 +22,34 @@ struct ElfOnShelfResult {
 }
 
 async fn elf_on_shelf(elf_text: String) -> Result<Json<ElfOnShelfResult>, StatusCode> {
-    let shelf_with_no_elf_on_it = Regex::new("(?<!elf on a )shelf")
+    tracing::info!("elf_text: {elf_text}");
+    let shelf = Regex::new("shelf")
         .map_err(|e| {
             eprintln!("ERR: coud't make the regex {e}");
             StatusCode::INTERNAL_SERVER_ERROR
         })?
         .captures_iter(elf_text.as_str())
         .count() as u64;
-    let elf_on_a_shelf = elf_text.matches("elf on a shelf").count() as u64;
-    let elf = elf_text.matches("elf").count() as u64;
+    let elf_on_a_shelf = Regex::new("elf(?= on a shelf)")
+        .map_err(|e| {
+            eprintln!("ERR: coud't make the regex {e}");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
+        .captures_iter(elf_text.as_str())
+        .count() as u64;
+
+    let elf = Regex::new("elf")
+        .map_err(|e| {
+            eprintln!("ERR: coud't make the regex {e}");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
+        .captures_iter(elf_text.as_str())
+        .count() as u64;
 
     Ok(Json(ElfOnShelfResult {
         elf,
         elf_on_a_shelf,
-        shelf_with_no_elf_on_it,
+        shelf_with_no_elf_on_it: shelf - elf_on_a_shelf,
     }))
 }
 
