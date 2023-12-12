@@ -32,14 +32,14 @@ async fn santa_cookie(TypedHeader(cookie): TypedHeader<Cookie>) -> Result<Json<V
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct RecipePantry {
-    recipe: HashMap<String, u32>,
-    pantry: HashMap<String, u32>,
+    recipe: HashMap<String, usize>,
+    pantry: HashMap<String, usize>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct CookieResult {
-    cookies: u32,
-    pantry: HashMap<String, u32>,
+    cookies: usize,
+    pantry: HashMap<String, usize>,
 }
 
 async fn secret_cookie(
@@ -54,48 +54,37 @@ async fn secret_cookie(
         StatusCode::BAD_REQUEST
     })?;
 
-    let recipe_pantry: RecipePantry = serde_json::from_slice(&de).map_err(|e| {
+    let mut recipe_pantry: RecipePantry = serde_json::from_slice(&de).map_err(|e| {
         eprintln!("ERR: error while deserialize from json {e}");
         StatusCode::BAD_REQUEST
     })?;
 
     let cookies_count = recipe_pantry
-        .clone()
         .recipe
-        .into_iter()
-        .map(|(recipe_key, recipe_value)| {
-            if let Some(pantry_needed) = recipe_pantry.pantry.get(&recipe_key) {
-                pantry_needed / recipe_value
+        .iter()
+        .map(|(recipe_key, &pantry_needed)| {
+            if pantry_needed == 0 {
+                usize::MAX
             } else {
-                0
+                recipe_pantry
+                    .pantry
+                    .get(recipe_key)
+                    .map(|&pantry_available| pantry_available / pantry_needed)
+                    .unwrap_or_default()
             }
         })
         .min()
-        .unwrap();
+        .unwrap_or_default();
 
-    let rest_pantry: HashMap<String, u32> = recipe_pantry
-        .recipe
-        .into_iter()
-        .filter_map(|(recipe_key, recipe_value)| {
-            if let Some(pantry_available) = recipe_pantry.pantry.get(&recipe_key) {
-                Some((
-                    recipe_key,
-                    pantry_available - (recipe_value * cookies_count),
-                ))
-            } else {
-                None
-            }
-        })
-        .collect();
+    for (recipe_key, &pantry_needed) in &recipe_pantry.recipe {
+        if let Some(p) = recipe_pantry.pantry.get_mut(recipe_key) {
+            *p -= cookies_count * pantry_needed;
+        }
+    }
 
-    let rest_pantry_is_empty = rest_pantry.is_empty();
     let result = CookieResult {
         cookies: cookies_count,
-        pantry: if rest_pantry_is_empty {
-            recipe_pantry.pantry
-        } else {
-            rest_pantry
-        },
+        pantry: recipe_pantry.pantry,
     };
     Ok(Json(result))
 }
