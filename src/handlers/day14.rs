@@ -92,4 +92,23 @@ mod tests {
             .await;
         assert_eq!(res.status(), StatusCode::OK);
     }
+
+    #[tokio::test]
+    async fn day14_safe_santa() {
+        let app = router();
+
+        let client = TestClient::new(app);
+        let res = client
+            .post("/14/safe")
+            .body(
+                json!({
+                "content": "<script>alert(\"XSS Attack!\")</script>"
+                })
+                .to_string(),
+            )
+            .header(CONTENT_TYPE, "application/json")
+            .send()
+            .await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
 }
