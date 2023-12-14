@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
-    time::{Instant, SystemTime},
+    time::Instant,
 };
 
 use axum::{
