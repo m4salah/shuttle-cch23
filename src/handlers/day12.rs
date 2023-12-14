@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
-    time::Instant,
+    time::{Instant, SystemTime},
 };
 
 use axum::{
@@ -10,8 +10,12 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use chrono::{DateTime, Datelike, Utc, Weekday};
+use serde::{Deserialize, Serialize};
+use std::convert::Into;
 use ulid::Ulid;
 use uuid::Uuid;
+
 type SharedState = Arc<RwLock<PacketState>>;
 
 #[derive(Default, Clone)]
@@ -28,6 +32,7 @@ pub fn router() -> Router {
         .route("/12/save/:packet_id", post(save_packet_id))
         .route("/12/load/:packet_id", get(load_packet_id))
         .route("/12/ulids", post(ulids_to_uuids))
+        .route("/12/ulids/:weekday", post(ulids_weekday))
         .with_state(packet_state)
 }
 
@@ -75,12 +80,60 @@ async fn ulids_to_uuids(Json(ulids): Json<Vec<String>>) -> Result<Json<Vec<Strin
                 StatusCode::BAD_REQUEST
             })?;
             let uuid: Uuid = ulid.into();
-            println!("Created uuid w/ version {}", uuid.get_version_num());
             Ok(uuid.to_string())
         })
         .collect::<Result<Vec<String>, StatusCode>>()?;
     uuids.reverse();
     Ok(Json(uuids))
+}
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UlidsWeekdayResult {
+    #[serde(rename = "christmas eve")]
+    pub christmas_eve: usize,
+    pub weekday: usize,
+    #[serde(rename = "in the future")]
+    pub in_the_future: usize,
+    #[serde(rename = "LSB is 1")]
+    pub lsb_is_1: usize,
+}
+
+async fn ulids_weekday(
+    Path(weekday): Path<u8>,
+    Json(ulids): Json<Vec<String>>,
+) -> Result<Json<UlidsWeekdayResult>, StatusCode> {
+    let weekday = Weekday::try_from(weekday).map_err(|e| {
+        tracing::error!("Failed to parse weekday  {e}");
+        StatusCode::BAD_REQUEST
+    })?;
+    // Convert all the ULIDs to UUIDs
+    let dates = ulids
+        .iter()
+        .map(|ulid| {
+            let ulid = Ulid::from_string(&ulid).map_err(|e| {
+                tracing::error!("Failed to parse ULID {ulid}: {e}");
+                StatusCode::BAD_REQUEST
+            })?;
+            let day: DateTime<Utc> = ulid.datetime().into();
+            Ok(day)
+        })
+        .collect::<Result<Vec<DateTime<Utc>>, StatusCode>>()?;
+
+    Ok(Json(UlidsWeekdayResult {
+        christmas_eve: dates
+            .iter()
+            .filter(|date| date.day() == 24 && date.month() == 12)
+            .count(),
+        weekday: dates
+            .iter()
+            .filter(|date| date.weekday() == weekday)
+            .count(),
+        in_the_future: dates.iter().filter(|date| date > &&Utc::now()).count(),
+        lsb_is_1: ulids
+            .iter()
+            .map(|ulid| Ulid::from_string(&ulid).unwrap())
+            .filter(|ulid| ulid.0 & 1 == 1)
+            .count(),
+    }))
 }
 
 #[cfg(test)]
@@ -175,13 +228,14 @@ mod tests {
             .await;
 
         assert_eq!(res.status(), StatusCode::OK);
-        let expected = json!({
-          "christmas eve": 3,
-          "weekday": 1,
-          "in the future": 2,
-          "LSB is 1": 5
-        });
 
-        assert_eq!(res.json::<Value>().await, expected);
+        let expected = UlidsWeekdayResult {
+            christmas_eve: 3,
+            weekday: 1,
+            in_the_future: 2,
+            lsb_is_1: 5,
+        };
+
+        assert_eq!(res.json::<UlidsWeekdayResult>().await, expected);
     }
 }
