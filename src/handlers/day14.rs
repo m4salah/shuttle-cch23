@@ -62,7 +62,7 @@ mod tests {
     use super::*;
     use axum::http::StatusCode;
     use axum_test_helper::TestClient;
-    use reqwest::header::CONTENT_TYPE;
+    use reqwest::header::{CONTENT_LENGTH, CONTENT_TYPE};
     use serde_json::json;
 
     #[tokio::test]
@@ -90,6 +90,11 @@ mod tests {
             .header(CONTENT_TYPE, "application/json")
             .send()
             .await;
+        assert_eq!(
+            res.headers().get(CONTENT_TYPE).unwrap(),
+            "text/html; charset=utf-8"
+        );
+        assert_eq!(res.headers().get(CONTENT_LENGTH).unwrap(), "124");
         assert_eq!(res.status(), StatusCode::OK);
     }
 
@@ -109,6 +114,11 @@ mod tests {
             .header(CONTENT_TYPE, "application/json")
             .send()
             .await;
+
+        assert_eq!(
+            res.headers().get(CONTENT_TYPE).unwrap(),
+            "text/html; charset=utf-8"
+        );
         assert_eq!(res.status(), StatusCode::OK);
     }
 }
