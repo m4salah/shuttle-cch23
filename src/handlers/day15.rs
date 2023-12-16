@@ -114,6 +114,12 @@ fn hash_ends_with_a(s: &str) -> bool {
     hash.ends_with('a')
 }
 
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct PasswordGameResult<'a> {
+    result: &'a str,
+    reason: &'a str,
+}
+
 async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoResponse {
     tracing::info!("game validator called with {password_input:?}");
 
@@ -121,7 +127,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if password_input.input.len() < 8 {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"result": "naughty", "reason": "8 chars"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "8 chars",
+            }),
         );
     }
 
@@ -129,7 +138,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !contains_upper_lower_digit(&password_input.input) {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"result": "naughty", "reason": "more types of chars"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "more types of chars",
+            }),
         );
     }
 
@@ -137,7 +149,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !contains_at_least_five_digits(&password_input.input) {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"result": "naughty", "reason": "55555"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "55555",
+            }),
         );
     }
 
@@ -145,7 +160,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !integers_sum_to_2023(&password_input.input) {
         return (
             StatusCode::BAD_REQUEST,
-            Json(json!({"result": "naughty", "reason": "math is hard"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "math is hard",
+            }),
         );
     }
 
@@ -153,7 +171,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !contains_j_o_y_in_order(&password_input.input) {
         return (
             StatusCode::NOT_ACCEPTABLE,
-            Json(json!({"result": "naughty", "reason": "not joyful enough"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "not joyful enough",
+            }),
         );
     }
 
@@ -161,7 +182,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !contains_sandwich(&password_input.input) {
         return (
             StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS,
-            Json(json!({"result": "naughty", "reason": "illegal: no sandwich"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "illegal: no sandwich",
+            }),
         );
     }
 
@@ -169,7 +193,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !contains_unicode_in_range(&password_input.input) {
         return (
             StatusCode::RANGE_NOT_SATISFIABLE,
-            Json(json!({"result": "naughty", "reason": "outranged"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "outranged",
+            }),
         );
     }
 
@@ -177,7 +204,10 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !contains_emoji(&password_input.input) {
         return (
             StatusCode::UPGRADE_REQUIRED,
-            Json(json!({"result": "naughty", "reason": "😳"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "😳",
+            }),
         );
     }
 
@@ -185,13 +215,19 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
     if !hash_ends_with_a(&password_input.input) {
         return (
             StatusCode::IM_A_TEAPOT,
-            Json(json!({"result": "naughty", "reason": "not a coffee brewer"})),
+            Json(PasswordGameResult {
+                result: "naughty",
+                reason: "not a coffee brewer",
+            }),
         );
     }
 
     return (
         StatusCode::OK,
-        Json(json!({"result": "nice", "reason": "that's a nice password"})),
+        Json(PasswordGameResult {
+            result: "nice",
+            reason: "that's a nice password",
+        }),
     );
 }
 
