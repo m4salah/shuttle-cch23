@@ -70,21 +70,21 @@ async fn load_packet_id(
     Err(StatusCode::NOT_FOUND)
 }
 
-async fn ulids_to_uuids(Json(ulids): Json<Vec<String>>) -> Result<Json<Vec<String>>, StatusCode> {
+async fn ulids_to_uuids(Json(ulids): Json<Vec<String>>) -> Json<Vec<String>> {
     // Convert all the ULIDs to UUIDs
-    let mut uuids = ulids
+    let uuids: Vec<String> = ulids
         .iter()
-        .map(|ulid| {
-            let ulid = Ulid::from_string(&ulid).map_err(|e| {
-                tracing::error!("Failed to parse ULID {ulid}: {e}");
-                StatusCode::BAD_REQUEST
-            })?;
-            let uuid: Uuid = ulid.into();
-            Ok(uuid.to_string())
+        .filter_map(|ulid| {
+            if let Ok(ulid) = Ulid::from_string(&ulid) {
+                let uuid: Uuid = ulid.into();
+                Some(uuid.to_string())
+            } else {
+                None
+            }
         })
-        .collect::<Result<Vec<String>, StatusCode>>()?;
-    uuids.reverse();
-    Ok(Json(uuids))
+        .rev()
+        .collect();
+    Json(uuids)
 }
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UlidsWeekdayResult {
@@ -106,17 +106,17 @@ async fn ulids_weekday(
         StatusCode::BAD_REQUEST
     })?;
     // Convert all the ULIDs to UUIDs
-    let dates = ulids
+    let dates: Vec<DateTime<Utc>> = ulids
         .iter()
-        .map(|ulid| {
-            let ulid = Ulid::from_string(&ulid).map_err(|e| {
-                tracing::error!("Failed to parse ULID {ulid}: {e}");
-                StatusCode::BAD_REQUEST
-            })?;
-            let day: DateTime<Utc> = ulid.datetime().into();
-            Ok(day)
+        .filter_map(|ulid| {
+            if let Ok(ulid) = Ulid::from_string(&ulid) {
+                let day: DateTime<Utc> = ulid.datetime().into();
+                Some(day)
+            } else {
+                None
+            }
         })
-        .collect::<Result<Vec<DateTime<Utc>>, StatusCode>>()?;
+        .collect();
 
     Ok(Json(UlidsWeekdayResult {
         christmas_eve: dates
