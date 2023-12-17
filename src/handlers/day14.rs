@@ -30,7 +30,7 @@ async fn unsafe_santa(
     .render()
     .map_err(|e| {
         tracing::error!("error while rendering html {e}");
-        StatusCode::BAD_REQUEST
+        StatusCode::INTERNAL_SERVER_ERROR
     })?;
     Ok((StatusCode::OK, Html(reply_html)))
 }
@@ -51,7 +51,7 @@ async fn safe_santa(
     .render()
     .map_err(|e| {
         tracing::error!("error while rendering html {e}");
-        StatusCode::BAD_REQUEST
+        StatusCode::INTERNAL_SERVER_ERROR
     })?;
     Ok((StatusCode::OK, Html(reply_html)))
 }
