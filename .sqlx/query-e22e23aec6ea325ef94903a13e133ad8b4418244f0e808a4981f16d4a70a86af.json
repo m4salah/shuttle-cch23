@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select \n            name as \"region!\", \n            sum(quantity)::INT as \"total!\" \n        from \n            orders o \n        inner join regions r on o.region_id = r.id \n        group by \n            region_id, name\n        order by\n            name\n            ;\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "region!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "total!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true,
+      null
+    ]
+  },
+  "hash": "e22e23aec6ea325ef94903a13e133ad8b4418244f0e808a4981f16d4a70a86af"
+}

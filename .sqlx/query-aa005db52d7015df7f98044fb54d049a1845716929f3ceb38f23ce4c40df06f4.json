@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select sum(quantity) from orders",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sum",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "aa005db52d7015df7f98044fb54d049a1845716929f3ceb38f23ce4c40df06f4"
+}
