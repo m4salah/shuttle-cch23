@@ -11,8 +11,8 @@ use serde_json::{json, Value};
 use sqlx::PgPool;
 
 #[derive(Clone)]
-struct SqlState {
-    pool: PgPool,
+pub struct SqlState {
+    pub pool: PgPool,
 }
 
 pub async fn router() -> Router {
@@ -86,7 +86,7 @@ pub struct Order {
     pub quantity: i32,
 }
 
-async fn create_orders(
+pub async fn create_orders(
     State(state): State<SqlState>,
     Json(orders): Json<Vec<Order>>,
 ) -> Result<(), StatusCode> {
@@ -184,7 +184,7 @@ mod tests {
         let app = router().await;
 
         let client = TestClient::new(app);
-        let res = client.get("/13/reset").send().await;
+        let res = client.post("/13/reset").send().await;
         assert_eq!(res.status(), StatusCode::OK);
     }
 
@@ -193,7 +193,7 @@ mod tests {
         let app = router().await;
 
         let client = TestClient::new(app);
-        let res = client.get("/13/reset").send().await;
+        let res = client.post("/13/reset").send().await;
         assert_eq!(res.status(), StatusCode::OK);
         let res = client
             .post("/13/orders")
@@ -221,7 +221,7 @@ mod tests {
         let app = router().await;
 
         let client = TestClient::new(app);
-        let res = client.get("/13/reset").send().await;
+        let res = client.post("/13/reset").send().await;
         assert_eq!(res.status(), StatusCode::OK);
 
         let res = client
