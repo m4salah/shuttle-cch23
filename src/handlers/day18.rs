@@ -1,5 +1,3 @@
-use std::env;
-
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -7,15 +5,11 @@ use axum::{
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
+use sqlx::{Pool, Postgres};
 
 use super::day13::{create_orders, SqlState};
 
-pub async fn router() -> Router {
-    dotenv::dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set the env variable");
-    let pool = PgPool::connect(&database_url).await.unwrap();
-
+pub fn router(pool: Pool<Postgres>) -> Router {
     Router::new()
         .route("/18/health", get(|| async { StatusCode::OK }))
         .route("/18/reset", post(reset))
@@ -186,7 +180,6 @@ pub async fn top_list(
         tracing::error!("error getting total per region from database {e}");
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
-    println!("{regions:?}");
     Ok(Json(regions))
 }
 
@@ -198,10 +191,13 @@ mod tests {
     use axum_test_helper::TestClient;
     use reqwest::header::CONTENT_TYPE;
     use serde_json::{json, Value};
+    use sqlx::PgPool;
 
+    const DATABASE_URL: &str = "postgres://postgres:password@localhost:5432/shuttle";
     #[tokio::test]
     async fn day18_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/18/health").send().await;
@@ -210,7 +206,8 @@ mod tests {
 
     #[tokio::test]
     async fn day18_reset() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.post("/18/reset").send().await;
@@ -219,7 +216,8 @@ mod tests {
 
     #[tokio::test]
     async fn day18_create_orders() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.post("/18/reset").send().await;
@@ -249,7 +247,8 @@ mod tests {
 
     #[tokio::test]
     async fn day18_create_regions() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.post("/18/reset").send().await;
@@ -278,7 +277,8 @@ mod tests {
 
     #[tokio::test]
     async fn day18_test_total() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
 
@@ -348,7 +348,8 @@ mod tests {
 
     #[tokio::test]
     async fn day18_test_best_region() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
 

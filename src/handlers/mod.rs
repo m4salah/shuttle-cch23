@@ -1,3 +1,5 @@
+use sqlx::{Pool, Postgres};
+
 mod day0;
 mod day1;
 mod day11;
@@ -11,7 +13,7 @@ mod day6;
 mod day7;
 mod day8;
 
-pub async fn router() -> axum::Router {
+pub fn router(pool: Pool<Postgres>) -> axum::Router {
     axum::Router::new()
         .nest("/", day0::router())
         .nest("/", day1::router())
@@ -21,10 +23,10 @@ pub async fn router() -> axum::Router {
         .nest("/", day8::router())
         .nest("/", day11::router())
         .nest("/", day12::router())
-        .nest("/", day13::router().await)
+        .nest("/", day13::router(pool.clone()))
         .nest("/", day14::router())
         .nest("/", day15::router())
-        .nest("/", day18::router().await)
+        .nest("/", day18::router(pool))
 }
 
 #[cfg(test)]
@@ -32,10 +34,13 @@ mod tests {
     use super::*;
     use axum::http::StatusCode;
     use axum_test_helper::TestClient;
+    use sqlx::PgPool;
 
+    const DATABASE_URL: &str = "postgres://postgres:password@localhost:5432/shuttle";
     #[tokio::test]
     async fn day0_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/-1/health").send().await;
@@ -44,7 +49,8 @@ mod tests {
 
     #[tokio::test]
     async fn day1_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/1/health").send().await;
@@ -53,7 +59,8 @@ mod tests {
 
     #[tokio::test]
     async fn day4_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/4/health").send().await;
@@ -62,7 +69,8 @@ mod tests {
 
     #[tokio::test]
     async fn day6_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/6/health").send().await;
@@ -71,7 +79,8 @@ mod tests {
 
     #[tokio::test]
     async fn day7_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/7/health").send().await;
@@ -80,7 +89,8 @@ mod tests {
 
     #[tokio::test]
     async fn day8_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/8/health").send().await;

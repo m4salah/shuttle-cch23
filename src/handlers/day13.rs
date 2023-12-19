@@ -1,5 +1,3 @@
-use std::env;
-
 use axum::{
     extract::State,
     http::StatusCode,
@@ -8,18 +6,14 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use sqlx::PgPool;
+use sqlx::{PgPool, Pool, Postgres};
 
 #[derive(Clone)]
 pub struct SqlState {
     pub pool: PgPool,
 }
 
-pub async fn router() -> Router {
-    dotenv::dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set the env variable");
-    let pool = PgPool::connect(&database_url).await.unwrap();
-
+pub fn router(pool: Pool<Postgres>) -> Router {
     Router::new()
         .route("/13/health", get(|| async { StatusCode::OK }))
         .route("/13/sql", get(sequal))
@@ -160,9 +154,12 @@ mod tests {
     use reqwest::header::CONTENT_TYPE;
     use serde_json::{json, Value};
 
+    const DATABASE_URL: &str = "postgres://postgres:password@localhost:5432/shuttle";
+
     #[tokio::test]
     async fn day13_health() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/13/health").send().await;
@@ -171,7 +168,8 @@ mod tests {
 
     #[tokio::test]
     async fn day13_sql() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.get("/13/sql").send().await;
@@ -181,7 +179,8 @@ mod tests {
 
     #[tokio::test]
     async fn day13_reset() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.post("/13/reset").send().await;
@@ -190,7 +189,8 @@ mod tests {
 
     #[tokio::test]
     async fn day13_create_orders() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.post("/13/reset").send().await;
@@ -218,7 +218,8 @@ mod tests {
 
     #[tokio::test]
     async fn day13_total() {
-        let app = router().await;
+        let pool = PgPool::connect(DATABASE_URL).await.unwrap();
+        let app = router(pool);
 
         let client = TestClient::new(app);
         let res = client.post("/13/reset").send().await;
