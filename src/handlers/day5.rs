@@ -28,39 +28,39 @@ struct PaginationQuery {
 async fn slicing(
     Query(pagination): Query<PaginationQuery>,
     Json(names): Json<Vec<String>>,
-) -> Result<Response, Json<Vec<String>>> {
+) -> impl IntoResponse {
     println!("{pagination:?} {names:?}");
 
     match (pagination.split, pagination.limit) {
         (None, None) => {
-            Ok(Json(names.get(pagination.offset..).ok_or(Json(vec![]))?.to_vec()).into_response())
+            Json(names.get(pagination.offset..).unwrap_or_default().to_vec()).into_response()
         }
 
-        (None, Some(limit)) => Ok(Json(
+        (None, Some(limit)) => Json(
             names
                 .get(pagination.offset..pagination.offset + limit)
-                .ok_or(Json(vec![]))?
+                .unwrap_or_default()
                 .to_vec(),
         )
-        .into_response()),
+        .into_response(),
 
-        (Some(split), None) => Ok(Json(
+        (Some(split), None) => Json(
             names
                 .chunks(split)
                 .map(|s| s.into())
                 .collect::<Vec<Vec<String>>>(),
         )
-        .into_response()),
+        .into_response(),
 
-        (Some(split), Some(limit)) => Ok(Json(
+        (Some(split), Some(limit)) => Json(
             names
                 .get(pagination.offset..pagination.offset + limit)
-                .ok_or(Json(vec![]))?
+                .unwrap_or_default()
                 .chunks(split)
                 .map(|s| s.into())
                 .collect::<Vec<Vec<String>>>(),
         )
-        .into_response()),
+        .into_response(),
     }
 }
 
