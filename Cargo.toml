@@ -5,11 +5,18 @@ edition = "2021"
 
 [dependencies]
 askama = { version = "0.12.1" }
-axum = { version = "0.6.20", features = ["macros", "headers", "multipart"] }
+axum = { version = "0.6.20", features = [
+    "macros",
+    "headers",
+    "multipart",
+    "ws",
+] }
 base64 = "0.21.5"
+bytes = "1.5.0"
 chrono = "0.4.31"
 dotenv = "0.15.0"
 fancy-regex = "0.12.0"
+futures = "0.3.29"
 image = "0.24.7"
 itertools = "0.12.0"
 reqwest = { version = "0.11.22", features = ["json"] }
@@ -23,11 +30,14 @@ sqlx = { version = "0.7.3", features = [
     "runtime-tokio-rustls",
     "macros",
 ] }
+tar = "0.4.40"
+tempfile = "3.8.1"
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.4.0", features = ["trace", "fs"] }
 tracing = "0.1.40"
 ulid = { version = "1.1.0", features = ["uuid"] }
 uuid = "1.6.1"
+walkdir = "2.4.0"
 
 [dev-dependencies]
 tower = { version = "0.4", features = ["util"] }
