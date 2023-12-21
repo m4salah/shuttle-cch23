@@ -8,6 +8,8 @@ mod day13;
 mod day14;
 mod day15;
 mod day18;
+mod day19;
+mod day20;
 mod day4;
 mod day6;
 mod day7;
@@ -27,6 +29,8 @@ pub fn router(pool: Pool<Postgres>) -> axum::Router {
         .nest("/", day14::router())
         .nest("/", day15::router())
         .nest("/", day18::router(pool))
+        .nest("/", day19::router())
+        .nest("/", day20::router())
 }
 
 #[cfg(test)]
