@@ -2,7 +2,6 @@ use std::error::Error;
 
 use axum::{extract::Path, http::StatusCode, routing::get, Router};
 use dms_coordinates::DMS;
-use futures::TryFutureExt;
 use s2::{cell::Cell, cellid::CellID};
 use serde::Deserialize;
 
