@@ -42,8 +42,8 @@ async fn rocket(content: String) -> impl IntoResponse {
             }
         }
     }
-    let rep = Vec::from_iter(result).get(0).unwrap_or(&0).to_owned();
-    "🎁".repeat(rep)
+    let gifts_count = result.into_iter().next().unwrap_or_default();
+    "🎁".repeat(gifts_count)
 }
 #[cfg(test)]
 mod tests {
