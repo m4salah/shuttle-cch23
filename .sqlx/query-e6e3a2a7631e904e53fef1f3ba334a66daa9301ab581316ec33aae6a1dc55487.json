@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select r.name as \"region!\", COALESCE(NULLIF(ARRAY_AGG(o.gift_name), '{NULL}'), '{}'::text[]) AS \"top_gifts!\" from regions r left join LATERAL  \n        (\n            select gift_name, sum(quantity) as sum_quantity from orders where r.id = region_id group by gift_name, region_id order by sum_quantity desc limit $1\n        ) o on true group by r.name order by r.name\n         ;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "region!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "top_gifts!",
+        "type_info": "VarcharArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      true,
+      null
+    ]
+  },
+  "hash": "e6e3a2a7631e904e53fef1f3ba334a66daa9301ab581316ec33aae6a1dc55487"
+}
