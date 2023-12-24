@@ -76,7 +76,6 @@ async fn handle_socket(mut socket: WebSocket) {
     }
 }
 
-#[axum::debug_handler]
 async fn connect_to_room(
     ws: WebSocketUpgrade,
     Path((room_id, username)): Path<(u64, String)>,
