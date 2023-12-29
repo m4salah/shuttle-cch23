@@ -3,8 +3,6 @@ name = "cch23-challenge"
 version = "0.1.0"
 edition = "2021"
 
-[build]
-rustflags = ["-Z", "threads=8"]
 
 [dependencies]
 askama = { version = "0.12.1" }
