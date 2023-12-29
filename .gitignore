@@ -1,3 +1,5 @@
 /target
 .shuttle-storage
 Secrets*.toml
+# from docker postgres instance
+db-data
