@@ -26,8 +26,6 @@ rust-crypto = "0.2.36"
 s2 = "0.0.12"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
-shuttle-axum = "0.35.0"
-shuttle-runtime = "0.35.0"
 sqlx = { version = "0.7.3", features = [
     "postgres",
     "runtime-tokio-rustls",
@@ -41,6 +39,8 @@ tracing = "0.1.40"
 ulid = { version = "1.1.0", features = ["uuid"] }
 uuid = "1.6.1"
 walkdir = "2.4.0"
+clap = { version = "4.4.7", features = ["env", "derive"] }
+tracing-subscriber = "0.3.18"
 
 [dev-dependencies]
 tower = { version = "0.4", features = ["util"] }
