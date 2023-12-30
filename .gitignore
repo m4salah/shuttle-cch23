@@ -3,3 +3,4 @@
 Secrets*.toml
 # from docker postgres instance
 db-data
+.env
