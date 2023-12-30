@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use axum::{headers::Cookie, http::StatusCode, routing::get, Json, TypedHeader};
+use axum::{http::StatusCode, routing::get, Json};
+use axum_extra::{headers::Cookie, TypedHeader};
 use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

@@ -1,9 +1,9 @@
 use axum::{
+    http::StatusCode,
     routing::{get, post},
     Json,
 };
 use fancy_regex::Regex;
-use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 pub fn router() -> axum::Router {
