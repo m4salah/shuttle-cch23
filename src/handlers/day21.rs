@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{env, error::Error, thread, time::Duration};
 
 use axum::{extract::Path, http::StatusCode, routing::get, Router};
 use dms_coordinates::DMS;
@@ -60,25 +60,32 @@ async fn country(Path(binary): Path<String>) -> Result<String, StatusCode> {
     )
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize)]
 struct Geocode {
-    address: Address,
+    pub address: Address,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct Address {
-    country: String,
+#[derive(Deserialize)]
+pub struct Address {
+    pub country: String,
 }
 
 async fn fetch_country_from_latlong(lat: f64, long: f64) -> Result<String, Box<dyn Error>> {
-    Ok(reqwest::get(format!(
-        "https://geocode.maps.co/reverse?lat={lat}&lon={long}"
-    ))
-    .await?
-    .json::<Geocode>()
-    .await?
-    .address
-    .country)
+    let geocode_api_key = env::var("GEOCODING_API_KEY")?;
+    let endpoint =
+        format!("https://geocode.maps.co/reverse?lat={lat}&lon={long}&api_key={geocode_api_key}");
+    let country = loop {
+        let endpoint = endpoint.clone();
+        if let Ok(req) = reqwest::get(endpoint).await {
+            if let Ok(c) = req.json::<Geocode>().await {
+                break c.address.country;
+            }
+        }
+        // sleep for 1 second and repeat, because the rate limit in this service is 1 req/second
+        // https://geocode.maps.co/
+        thread::sleep(Duration::from_secs(1));
+    };
+    Ok(country)
 }
 
 #[cfg(test)]
