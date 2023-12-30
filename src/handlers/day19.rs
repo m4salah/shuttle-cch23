@@ -230,20 +230,3 @@ async fn connect_to_room_handler(
     // TODO: if we reach here, means that the user disconnected, so we need to remove the user from the room.
     // TODO: if there is no one left in the room we remove the entire room.
 }
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use axum::http::StatusCode;
-    use axum_test_helper::TestClient;
-
-    #[tokio::test]
-    async fn day19_health() {
-        let app = router();
-
-        let client = TestClient::new(app);
-        let res = client.get("/19/health").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
-}

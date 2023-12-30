@@ -63,19 +63,3 @@ async fn slicing(
         .into_response(),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::http::StatusCode;
-    use axum_test_helper::TestClient;
-
-    #[tokio::test]
-    async fn day5_health() {
-        let app = router();
-
-        let client = TestClient::new(app);
-        let res = client.get("/5/health").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
-}

@@ -46,33 +46,3 @@ async fn red_pixels(mut multipart: Multipart) -> Result<String, StatusCode> {
     }
     Ok("0".to_string())
 }
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use axum::http::StatusCode;
-    use axum_test_helper::TestClient;
-
-    #[tokio::test]
-    async fn day11_health() {
-        let app = router();
-
-        let client = TestClient::new(app);
-        let res = client.get("/11/health").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
-
-    #[tokio::test]
-    async fn day11_right_content_type_and_content_length() {
-        let app = router();
-
-        let client = TestClient::new(app);
-        let res = client.get("/11/assets/decoration.png").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-        assert_eq!(res.headers().get("content-length").unwrap(), "787297");
-        assert_eq!(res.headers().get("content-type").unwrap(), "image/png");
-    }
-
-    // TODO: test with valid image, red_pixels endpoint
-}

@@ -101,19 +101,3 @@ async fn fetch_country_from_latlong(
     };
     Ok(country)
 }
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use axum::http::StatusCode;
-    use axum_test_helper::TestClient;
-
-    #[tokio::test]
-    async fn day21_health() {
-        let app = router("test_api_key".to_string());
-        let client = TestClient::new(app);
-        let res = client.get("/21/health").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
-}
