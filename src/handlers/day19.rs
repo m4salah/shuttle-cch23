@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     fmt::Display,
+    net::SocketAddr,
     sync::{
         atomic::{AtomicUsize, Ordering},
         Arc, RwLock,
@@ -10,7 +11,7 @@ use std::{
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        Path, State,
+        ConnectInfo, Path, State,
     },
     http::StatusCode,
     response::IntoResponse,
@@ -103,7 +104,11 @@ pub fn router() -> Router {
         .with_state(app_state)
 }
 
-async fn ping_ws(ws: WebSocketUpgrade) -> impl IntoResponse {
+async fn ping_ws(
+    ws: WebSocketUpgrade,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+) -> impl IntoResponse {
+    tracing::info!("client connected to ping ws at address {addr}");
     ws.on_upgrade(handle_ping_socket)
 }
 
@@ -141,7 +146,9 @@ async fn connect_to_room(
     ws: WebSocketUpgrade,
     Path((room_id, username)): Path<(usize, String)>,
     State(app_state): State<Arc<AppState>>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
+    tracing::info!("user: {username} connected to room {room_id}, with address {addr}");
     ws.on_upgrade(move |socket| connect_to_room_handler(socket, app_state, room_id, username))
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -182,6 +189,12 @@ async fn connect_to_room_handler(
             let room_sender = room_sender.clone();
             while let Some(Ok(Message::Text(msg))) = receiver.next().await {
                 if let Ok(tweet_input) = serde_json::from_str::<TweetInput>(msg.as_str()) {
+                    tracing::info!(
+                        r#"user: "{}" sent message: "{}" to room "{}""#,
+                        username,
+                        tweet_input.message,
+                        room_id
+                    );
                     if tweet_input.message.len() <= 128 {
                         room_sender
                             .send(Tweet::new(username.clone(), tweet_input))

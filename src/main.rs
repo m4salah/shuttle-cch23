@@ -28,12 +28,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // bind an address from the env port
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
-    tracing::info!("listening on {}", addr);
 
     // start the server
-    axum::Server::bind(&addr)
-        .serve(app(pool, config.geocoding_api_key).into_make_service())
-        .await
-        .unwrap();
+    // run our app with hyper, listening globally on port PORT
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    tracing::debug!("listening on {}", addr);
+    axum::serve(
+        listener,
+        app(pool, config.geocoding_api_key).into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
     Ok(())
 }

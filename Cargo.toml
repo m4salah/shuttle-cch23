@@ -6,12 +6,8 @@ edition = "2021"
 
 [dependencies]
 askama = { version = "0.12.1" }
-axum = { version = "0.6.20", features = [
-    "macros",
-    "headers",
-    "multipart",
-    "ws",
-] }
+axum = { version = "0.7.3", features = ["macros", "multipart", "ws"] }
+axum-extra = { version = "0.9.1", features = ["typed-header"] }
 base64 = "0.21.5"
 bytes = "1.5.0"
 chrono = "0.4.31"
@@ -34,7 +30,7 @@ sqlx = { version = "0.7.3", features = [
 tar = "0.4.40"
 tempfile = "3.8.1"
 tokio = { version = "1", features = ["full"] }
-tower-http = { version = "0.4.0", features = ["trace", "fs"] }
+tower-http = { version = "0.5.0", features = ["trace", "fs"] }
 tracing = "0.1.40"
 ulid = { version = "1.1.0", features = ["uuid"] }
 uuid = "1.6.1"
