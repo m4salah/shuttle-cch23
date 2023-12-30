@@ -14,9 +14,7 @@ pub fn router() -> axum::Router {
 
 #[axum::debug_handler]
 async fn santa_cookie(TypedHeader(cookie): TypedHeader<Cookie>) -> Result<Json<Value>, StatusCode> {
-    let recipe = cookie
-        .get("recipe")
-        .ok_or_else(|| StatusCode::BAD_REQUEST)?;
+    let recipe = cookie.get("recipe").ok_or(StatusCode::BAD_REQUEST)?;
 
     let de = general_purpose::STANDARD.decode(recipe).map_err(|e| {
         eprintln!("ERR: error while decoding recipe from base64 {e}");
@@ -45,9 +43,7 @@ struct CookieResult {
 async fn secret_cookie(
     TypedHeader(cookie): TypedHeader<Cookie>,
 ) -> Result<Json<CookieResult>, StatusCode> {
-    let recipe = cookie
-        .get("recipe")
-        .ok_or_else(|| StatusCode::BAD_REQUEST)?;
+    let recipe = cookie.get("recipe").ok_or(StatusCode::BAD_REQUEST)?;
 
     let de = general_purpose::STANDARD.decode(recipe).map_err(|e| {
         eprintln!("ERR: error while decoding recipe from base64 {e}");

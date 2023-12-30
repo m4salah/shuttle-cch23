@@ -75,7 +75,7 @@ async fn ulids_to_uuids(Json(ulids): Json<Vec<String>>) -> Json<Vec<String>> {
     let uuids: Vec<String> = ulids
         .iter()
         .filter_map(|ulid| {
-            if let Ok(ulid) = Ulid::from_string(&ulid) {
+            if let Ok(ulid) = Ulid::from_string(ulid) {
                 let uuid: Uuid = ulid.into();
                 Some(uuid.to_string())
             } else {
@@ -109,7 +109,7 @@ async fn ulids_weekday(
     let dates: Vec<DateTime<Utc>> = ulids
         .iter()
         .filter_map(|ulid| {
-            if let Ok(ulid) = Ulid::from_string(&ulid) {
+            if let Ok(ulid) = Ulid::from_string(ulid) {
                 let day: DateTime<Utc> = ulid.datetime().into();
                 Some(day)
             } else {
@@ -130,7 +130,7 @@ async fn ulids_weekday(
         in_the_future: dates.iter().filter(|date| date > &&Utc::now()).count(),
         lsb_is_1: ulids
             .iter()
-            .map(|ulid| Ulid::from_string(&ulid).unwrap())
+            .map(|ulid| Ulid::from_string(ulid).unwrap())
             .filter(|ulid| ulid.0 & 1 == 1)
             .count(),
     }))

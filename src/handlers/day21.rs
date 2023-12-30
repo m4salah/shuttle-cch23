@@ -1,15 +1,21 @@
-use std::{env, error::Error, thread, time::Duration};
+use std::{error::Error, thread, time::Duration};
 
-use axum::{extract::Path, http::StatusCode, routing::get, Router};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    routing::get,
+    Router,
+};
 use dms_coordinates::DMS;
 use s2::{cell::Cell, cellid::CellID};
 use serde::Deserialize;
 
-pub fn router() -> Router {
+pub fn router(geocoding_api_key: String) -> Router {
     Router::new()
         .route("/21/health", get(|| async { StatusCode::OK }))
         .route("/21/coords/:binary", get(coords))
         .route("/21/country/:binary", get(country))
+        .with_state(geocoding_api_key)
 }
 
 async fn coords(Path(binary): Path<String>) -> Result<String, StatusCode> {
@@ -42,7 +48,10 @@ async fn coords(Path(binary): Path<String>) -> Result<String, StatusCode> {
     ))
 }
 
-async fn country(Path(binary): Path<String>) -> Result<String, StatusCode> {
+async fn country(
+    Path(binary): Path<String>,
+    State(geocoding_api_key): State<String>,
+) -> Result<String, StatusCode> {
     let b = u64::from_str_radix(binary.as_str(), 2).map_err(|e| {
         tracing::error!("error converting binary to u64 {e}");
         StatusCode::BAD_REQUEST
@@ -50,14 +59,16 @@ async fn country(Path(binary): Path<String>) -> Result<String, StatusCode> {
     let cell_id = CellID(b);
     let center = Cell::from(cell_id).center();
 
-    Ok(
-        fetch_country_from_latlong(center.latitude().deg(), center.longitude().deg())
-            .await
-            .map_err(|e| {
-                tracing::error!("error while fetching country {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?,
+    fetch_country_from_latlong(
+        geocoding_api_key,
+        center.latitude().deg(),
+        center.longitude().deg(),
     )
+    .await
+    .map_err(|e| {
+        tracing::error!("error while fetching country {e}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })
 }
 
 #[derive(Deserialize)]
@@ -70,8 +81,11 @@ pub struct Address {
     pub country: String,
 }
 
-async fn fetch_country_from_latlong(lat: f64, long: f64) -> Result<String, Box<dyn Error>> {
-    let geocode_api_key = env::var("GEOCODING_API_KEY")?;
+async fn fetch_country_from_latlong(
+    geocode_api_key: String,
+    lat: f64,
+    long: f64,
+) -> Result<String, Box<dyn Error>> {
     let endpoint =
         format!("https://geocode.maps.co/reverse?lat={lat}&lon={long}&api_key={geocode_api_key}");
     let country = loop {
@@ -97,7 +111,7 @@ mod tests {
 
     #[tokio::test]
     async fn day21_health() {
-        let app = router();
+        let app = router("test_api_key".to_string());
         let client = TestClient::new(app);
         let res = client.get("/21/health").send().await;
         assert_eq!(res.status(), StatusCode::OK);

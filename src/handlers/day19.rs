@@ -167,8 +167,7 @@ async fn connect_to_room_handler(
         let mut rooms = state.rooms.write().unwrap();
         let room_state = rooms.entry(room_id).or_insert_with(RoomState::new);
         room_state.insert_user(username.clone());
-        let room_sender = room_state.tx.clone();
-        room_sender
+        room_state.tx.clone()
     };
 
     // create room receiver to subscribe to any new message sent to the room channel

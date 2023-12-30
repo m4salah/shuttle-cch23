@@ -39,7 +39,7 @@ mod tests {
         let client = TestClient::new(app);
         let res = client.get("/1/3/5").send().await;
         assert_eq!(res.status(), StatusCode::OK);
-        let expected = ((3 ^ 5) as i32).pow(3);
+        let expected = (3_i32 ^ 5_i32).pow(3);
         assert_eq!(res.text().await, format!("{expected}"));
     }
 

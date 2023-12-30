@@ -18,11 +18,8 @@ async fn integers(content: String) -> impl IntoResponse {
     let mut result: HashSet<usize> = HashSet::new();
     for line in content.lines() {
         if let Ok(num) = line.trim().parse::<usize>() {
-            match result.take(&num) {
-                None => {
-                    result.insert(num);
-                }
-                _ => {}
+            if result.take(&num).is_none() {
+                result.insert(num);
             }
         }
     }
@@ -34,11 +31,8 @@ async fn rocket(content: String) -> impl IntoResponse {
     let mut result: HashSet<usize> = HashSet::new();
     for line in content.lines() {
         if let Ok(num) = line.trim().parse::<usize>() {
-            match result.take(&num) {
-                None => {
-                    result.insert(num);
-                }
-                _ => {}
+            if result.take(&num).is_none() {
+                result.insert(num);
             }
         }
     }

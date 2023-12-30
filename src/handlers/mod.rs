@@ -18,7 +18,7 @@ mod day6;
 mod day7;
 mod day8;
 
-pub fn router(pool: Pool<Postgres>) -> axum::Router {
+pub fn router(pool: Pool<Postgres>, geocoding_api_key: String) -> axum::Router {
     axum::Router::new()
         .nest("/", day0::router())
         .nest("/", day1::router())
@@ -35,7 +35,7 @@ pub fn router(pool: Pool<Postgres>) -> axum::Router {
         .nest("/", day18::router(pool))
         .nest("/", day19::router())
         .nest("/", day20::router())
-        .nest("/", day21::router())
+        .nest("/", day21::router(geocoding_api_key))
         .nest("/", day22::router())
 }
 
@@ -47,10 +47,11 @@ mod tests {
     use sqlx::PgPool;
 
     const DATABASE_URL: &str = "postgres://postgres:password@localhost:5432/shuttle";
+    const GEOCODING_API_KEY: &str = "test_api_key";
     #[tokio::test]
     async fn day0_health() {
         let pool = PgPool::connect(DATABASE_URL).await.unwrap();
-        let app = router(pool);
+        let app = router(pool, GEOCODING_API_KEY.to_string());
 
         let client = TestClient::new(app);
         let res = client.get("/-1/health").send().await;
@@ -60,7 +61,7 @@ mod tests {
     #[tokio::test]
     async fn day1_health() {
         let pool = PgPool::connect(DATABASE_URL).await.unwrap();
-        let app = router(pool);
+        let app = router(pool, GEOCODING_API_KEY.to_string());
 
         let client = TestClient::new(app);
         let res = client.get("/1/health").send().await;
@@ -70,7 +71,7 @@ mod tests {
     #[tokio::test]
     async fn day4_health() {
         let pool = PgPool::connect(DATABASE_URL).await.unwrap();
-        let app = router(pool);
+        let app = router(pool, GEOCODING_API_KEY.to_string());
 
         let client = TestClient::new(app);
         let res = client.get("/4/health").send().await;
@@ -80,7 +81,7 @@ mod tests {
     #[tokio::test]
     async fn day6_health() {
         let pool = PgPool::connect(DATABASE_URL).await.unwrap();
-        let app = router(pool);
+        let app = router(pool, GEOCODING_API_KEY.to_string());
 
         let client = TestClient::new(app);
         let res = client.get("/6/health").send().await;
@@ -90,7 +91,7 @@ mod tests {
     #[tokio::test]
     async fn day7_health() {
         let pool = PgPool::connect(DATABASE_URL).await.unwrap();
-        let app = router(pool);
+        let app = router(pool, GEOCODING_API_KEY.to_string());
 
         let client = TestClient::new(app);
         let res = client.get("/7/health").send().await;
@@ -100,7 +101,7 @@ mod tests {
     #[tokio::test]
     async fn day8_health() {
         let pool = PgPool::connect(DATABASE_URL).await.unwrap();
-        let app = router(pool);
+        let app = router(pool, GEOCODING_API_KEY.to_string());
 
         let client = TestClient::new(app);
         let res = client.get("/8/health").send().await;

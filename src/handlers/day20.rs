@@ -81,7 +81,7 @@ async fn cookie(file: Bytes) -> Result<String, StatusCode> {
             "--format=%cn,%H",
             BRANCH_NAME, /* "--", "santa.txt"*/
         ])
-        .current_dir(&extracted_temp_dir.path())
+        .current_dir(extracted_temp_dir.path())
         .output()
         .map_err(|e| {
             tracing::error!("error while unpacking the archive file {e}");
@@ -100,7 +100,7 @@ async fn cookie(file: Bytes) -> Result<String, StatusCode> {
     {
         let output = Command::new("git")
             .args(["checkout", commit, "--force"])
-            .current_dir(&extracted_temp_dir.path())
+            .current_dir(extracted_temp_dir.path())
             .output()
             .unwrap();
 
@@ -121,7 +121,7 @@ async fn cookie(file: Bytes) -> Result<String, StatusCode> {
                     }
                 }
             }
-            return false;
+            false
         });
         if found_santa {
             return Ok(format!("{author} {commit}"));

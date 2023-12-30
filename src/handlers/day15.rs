@@ -37,7 +37,7 @@ async fn nice_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
             return (StatusCode::OK, Json(json!({"result": "nice"})));
         }
     }
-    return (StatusCode::BAD_REQUEST, Json(json!({"result": "naughty"})));
+    (StatusCode::BAD_REQUEST, Json(json!({"result": "naughty"})))
 }
 
 fn contains_upper_lower_digit(s: &str) -> bool {
@@ -61,7 +61,7 @@ fn integers_sum_to_2023(s: &str) -> bool {
     let mut total_sum = 0;
 
     for c in s.chars() {
-        if let Some(_) = c.to_digit(10) {
+        if c.is_ascii_digit() {
             current_num.push(c);
         } else {
             total_sum += current_num.parse::<u32>().unwrap_or_default();
@@ -91,7 +91,7 @@ fn contains_sandwich(s: &str) -> bool {
 
 fn contains_unicode_in_range(s: &str) -> bool {
     for c in s.chars() {
-        if c >= '\u{2980}' && c <= '\u{2BFF}' {
+        if ('\u{2980}'..='\u{2BFF}').contains(&c) {
             return true;
         }
     }
@@ -222,13 +222,13 @@ async fn game_validator(Json(password_input): Json<PasswordInput>) -> impl IntoR
         );
     }
 
-    return (
+    (
         StatusCode::OK,
         Json(PasswordGameResult {
             result: "nice",
             reason: "that's a nice password",
         }),
-    );
+    )
 }
 
 #[cfg(test)]
@@ -356,22 +356,22 @@ mod tests {
 
     #[tokio::test]
     async fn test_contains_emoji() {
-        assert_eq!(contains_emoji("hello"), false);
-        assert_eq!(contains_emoji("hello 😳"), true);
-        assert_eq!(contains_emoji("2000.23.A j  ;)  o  ;)  y ⦄AzA"), false);
+        assert!(!contains_emoji("hello"));
+        assert!(contains_emoji("hello 😳"));
+        assert!(!contains_emoji("2000.23.A j  ;)  o  ;)  y ⦄AzA"));
     }
 
     #[tokio::test]
     async fn test_joy() {
-        assert_eq!(contains_j_o_y_in_order("2000.23.A joy joy"), false);
-        assert_eq!(contains_j_o_y_in_order("2020.3.A j  ;)  o  ;)  y"), true);
+        assert!(!contains_j_o_y_in_order("2000.23.A joy joy"));
+        assert!(contains_j_o_y_in_order("2020.3.A j  ;)  o  ;)  y"));
     }
 
     #[tokio::test]
     async fn test_contains_five_digits() {
-        assert_eq!(contains_at_least_five_digits("hello"), false);
-        assert_eq!(contains_at_least_five_digits("123hello"), false);
-        assert_eq!(contains_at_least_five_digits("12345hello"), true);
-        assert_eq!(contains_at_least_five_digits("1skdj3skdjf34jskdjf4"), true);
+        assert!(!contains_at_least_five_digits("hello"));
+        assert!(!contains_at_least_five_digits("123hello"));
+        assert!(contains_at_least_five_digits("12345hello"));
+        assert!(contains_at_least_five_digits("1skdj3skdjf34jskdjf4"));
     }
 }
