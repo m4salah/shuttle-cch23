@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // start the server
     // run our app with hyper, listening globally on port PORT
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    tracing::debug!("listening on {}", addr);
+    tracing::info!("listening on {}", addr);
     axum::serve(
         listener,
         app(pool, config.geocoding_api_key).into_make_service_with_connect_info::<SocketAddr>(),
