@@ -2,7 +2,7 @@
 
 These are my submissions for the [Christmas Code Hunt](https://www.shuttle.rs/cch) hosted by [shuttle.rs](https://shuttle.rs/)
 
-I'm using [Axum runtime](https://github.com/tokio-rs/axum).
+I'm using [Axum](https://github.com/tokio-rs/axum).
 
 ## To Run the app
 
