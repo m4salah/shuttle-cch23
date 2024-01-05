@@ -4,12 +4,18 @@ These are my submissions for the [Christmas Code Hunt](https://www.shuttle.rs/cc
 
 I'm using [Axum](https://github.com/tokio-rs/axum).
 
+## First we need to run docker instance hold the postgre db instance
+
+```shell
+make docker-run-db
+```
+
 ## To Run the app
 
 make sure to install [cargo-shuttle](https://docs.shuttle.rs/getting-started/installation)
 
 ```shell
-cargo shuttle run
+make run
 ```
 
 ## To Run Watch
@@ -17,11 +23,23 @@ cargo shuttle run
 make sure to install [cargo-watch](https://github.com/watchexec/cargo-watch)
 
 ```shell
-cargo watch -x "shuttle run"
+make watch
 ```
 
 ## To Run Tests
 
 ```shell
-cargo test
+make test
+```
+
+## To Run Watch on Tests
+
+```shell
+make watch-test
+```
+
+## To Validate all days
+
+```shell
+make validate-all
 ```
