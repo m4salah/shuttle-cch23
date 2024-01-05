@@ -3,6 +3,7 @@ use std::{error::Error, net::SocketAddr};
 use axum::Router;
 use clap::Parser;
 use sqlx::{PgPool, Pool, Postgres};
+use tokio::signal;
 
 mod config;
 mod handlers;
@@ -37,7 +38,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
         listener,
         app(pool, config.geocoding_api_key).into_make_service_with_connect_info::<SocketAddr>(),
     )
+    .with_graceful_shutdown(shutdown_signal())
     .await
     .unwrap();
     Ok(())
+}
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
 }
