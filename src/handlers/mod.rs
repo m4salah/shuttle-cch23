@@ -17,6 +17,7 @@ pub mod day5;
 pub mod day6;
 pub mod day7;
 pub mod day8;
+pub mod tiebreaker;
 
 pub fn router(pool: Pool<Postgres>, geocoding_api_key: String) -> axum::Router {
     axum::Router::new()
@@ -37,4 +38,5 @@ pub fn router(pool: Pool<Postgres>, geocoding_api_key: String) -> axum::Router {
         .nest("/", day20::router())
         .nest("/", day21::router(geocoding_api_key))
         .nest("/", day22::router())
+        .nest("/", tiebreaker::router())
 }
