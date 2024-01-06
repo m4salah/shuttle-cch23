@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use axum::{
     http::StatusCode,
@@ -51,15 +51,97 @@ async fn rocket(content: String) -> impl IntoResponse {
             .next()
             .unwrap()
             .splitn(2, ' ')
-            .map(|s| s.parse::<i32>().unwrap())
-            .collect_tuple::<(i32, i32)>()
+            .map(|s| s.parse::<usize>().unwrap())
+            .collect_tuple::<(usize, usize)>()
             .unwrap();
         portals.push(s);
     }
 
+    let mut adjacency_list_graph = AdjacencyListGraph::new();
+
+    for portal in portals.iter() {
+        adjacency_list_graph.add_edge(*stars.get(portal.0).unwrap(), *stars.get(portal.1).unwrap())
+    }
+
+    let start_vertex = stars.first().unwrap();
+    let end_vertex = stars.last().unwrap();
+
+    let shortest_path = adjacency_list_graph
+        .bfs_shortest_path(*start_vertex, *end_vertex)
+        .unwrap();
+    let portals_num_traveled = shortest_path.len() - 1;
     info!("{star_nums}: {:?}", stars);
     info!("{portal_nums}: {:?}", portals);
-    info!("{}", content);
+    info!("{:?}", adjacency_list_graph);
+    info!("{:?}", shortest_path);
+
+    format!(
+        "{} {:.3}",
+        portals_num_traveled,
+        AdjacencyListGraph::path_distance_calculator(&shortest_path)
+    )
+}
+
+#[derive(Debug)]
+struct AdjacencyListGraph {
+    list: HashMap<(i32, i32, i32), Vec<(i32, i32, i32)>>,
+}
+
+type Vertex = (i32, i32, i32);
+impl AdjacencyListGraph {
+    fn new() -> Self {
+        AdjacencyListGraph {
+            list: HashMap::new(),
+        }
+    }
+
+    fn add_edge(&mut self, v1: Vertex, v2: Vertex) {
+        self.list
+            .entry(v1)
+            .and_modify(|ve| ve.push(v2))
+            .or_insert(vec![v2]);
+    }
+
+    fn bfs_shortest_path(&self, start: Vertex, end: Vertex) -> Option<Vec<Vertex>> {
+        let mut queue = VecDeque::new();
+        let mut visited = HashSet::new();
+        queue.push_back((start, vec![start]));
+        while let Some((current_vertex, path)) = queue.pop_front() {
+            if visited.contains(&current_vertex) {
+                continue;
+            }
+
+            visited.insert(current_vertex);
+
+            if current_vertex == end {
+                return Some(path);
+            }
+
+            if let Some(neighbors) = self.list.get(&current_vertex) {
+                for &neighbor in neighbors {
+                    if !visited.contains(&neighbor) {
+                        let mut new_path = path.clone();
+                        new_path.push(neighbor);
+                        queue.push_back((neighbor, new_path));
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
+    fn path_distance_calculator(path: &Vec<Vertex>) -> f32 {
+        let mut distance: f32 = 0.0;
+        for i in 1..path.len() {
+            distance += AdjacencyListGraph::distance_calculator(path[i - 1], path[i])
+        }
+        distance
+    }
+
+    fn distance_calculator(v1: Vertex, v2: Vertex) -> f32 {
+        (((v1.0 - v2.0).pow(2) + (v1.1 - v2.1).pow(2) + (v1.2 - v2.2).pow(2)) as f32).sqrt()
+    }
 }
 
 #[cfg(test)]
