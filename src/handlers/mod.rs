@@ -1,22 +1,22 @@
 use sqlx::{Pool, Postgres};
 
-mod day0;
-mod day1;
-mod day11;
-mod day12;
-mod day13;
-mod day14;
-mod day15;
-mod day18;
-mod day19;
-mod day20;
-mod day21;
-mod day22;
-mod day4;
-mod day5;
-mod day6;
-mod day7;
-mod day8;
+pub mod day0;
+pub mod day1;
+pub mod day11;
+pub mod day12;
+pub mod day13;
+pub mod day14;
+pub mod day15;
+pub mod day18;
+pub mod day19;
+pub mod day20;
+pub mod day21;
+pub mod day22;
+pub mod day4;
+pub mod day5;
+pub mod day6;
+pub mod day7;
+pub mod day8;
 
 pub fn router(pool: Pool<Postgres>, geocoding_api_key: String) -> axum::Router {
     axum::Router::new()

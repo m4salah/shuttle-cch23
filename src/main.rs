@@ -1,16 +1,13 @@
 use std::{error::Error, net::SocketAddr};
 
-use axum::Router;
 use clap::Parser;
-use sqlx::{PgPool, Pool, Postgres};
+use sqlx::PgPool;
+use startup::run;
 use tokio::signal;
 
 mod config;
 mod handlers;
-
-fn app(pool: Pool<Postgres>, geocoding_api_key: String) -> Router {
-    handlers::router(pool, geocoding_api_key)
-}
+mod startup;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -34,15 +31,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // run our app with hyper, listening globally on port PORT
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     tracing::info!("listening on {}", addr);
-    axum::serve(
-        listener,
-        app(pool, config.geocoding_api_key).into_make_service_with_connect_info::<SocketAddr>(),
-    )
-    .with_graceful_shutdown(shutdown_signal())
-    .await
-    .unwrap();
+
+    run(listener, pool, config)?
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
     Ok(())
 }
+
 async fn shutdown_signal() {
     let ctrl_c = async {
         signal::ctrl_c()
